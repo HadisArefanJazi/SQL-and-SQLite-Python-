@@ -144,22 +144,7 @@ create table customers (
 
 # ============================================================
 # 7. create second table: products
-# ============================================================
-
-# concept:
-# the products table stores product information.
-# each product has one unique product_id.
-
-# formula:
-# create table products (
-#     product_id integer primary key,
-#     product_name text,
-#     category text,
-#     unit_price real
-# )
-
-# example:
-
+ 
 cursor.execute("""
 create table products (
     product_id integer primary key,
