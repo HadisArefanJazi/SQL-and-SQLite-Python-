@@ -1,6 +1,5 @@
 # ============================================================
 # sql and sqlite data analysis tutorial
-# file name: sqlite_data_analysis_tutorial.py
 # ============================================================
 
 # this file teaches sql for data analysis using python and sqlite.
