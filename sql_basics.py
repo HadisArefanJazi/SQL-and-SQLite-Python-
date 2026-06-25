@@ -1,13 +1,12 @@
 # ============================================================
-# sql and sqlite data analysis tutorial
+# sql and sqlite data analysis notes
 # ============================================================
 
-
-# sql means structured query language.
+# sql stands for structured query language.
 # sql is used to create, read, update, delete, clean, join, and analyze data.
 
-# sqlite is a small database system.
-# it stores data in a local file such as ecommerce.db.
+# sqlite is a lightweight database system.
+# it stores the database in a local file such as ecommerce.db.
 
 # python communicates with sqlite using the sqlite3 module.
 
@@ -20,127 +19,58 @@ import sqlite3
 
 # concept:
 # before using a database, python must connect to it.
-# if the database file does not exist, sqlite creates it.
+# if the file does not exist, sqlite creates it.
 
-# general formula:
+# formula:
 # connection = sqlite3.connect("database_name.db")
-# cursor = connection.cursor()
 
 # example:
 
 conn = sqlite3.connect("ecommerce.db")
 
+
+# ============================================================
+# 2. create a cursor
+# ============================================================
+
+# concept:
+# a cursor is the object that sends sql commands to the database.
+# python does not send sql directly.
+# python uses the cursor to execute sql.
+
+# formula:
+# cursor = connection.cursor()
+
+# example:
+
 cursor = conn.cursor()
 
-# foreign keys are disabled by default in sqlite.
-# this turns them on.
+
+# ============================================================
+# 3. turn on foreign keys
+# ============================================================
+
+# concept:
+# sqlite does not enforce foreign keys unless we turn them on.
+# this means sqlite will check table relationships correctly.
+
+# formula:
+# cursor.execute("pragma foreign_keys = on")
+
+# example:
 
 cursor.execute("pragma foreign_keys = on")
 
 
 # ============================================================
-# 2. helper function
+# 4. reset old tables
 # ============================================================
 
 # concept:
-# many select queries return rows.
-# this helper prints the result nicely.
+# this removes old tables so the script starts clean every time.
+# delete child tables first, then parent tables.
 
-# general formula:
-# def function_name(title, rows):
-#     print title
-#     loop through rows
-#     print each row
-
-# example:
-
-def show(title, rows):
-    print("\n" + title)
-    print("-" * len(title))
-    for row in rows:
-        print(row)
-
-
-# ============================================================
-# 3. database concepts
-# ============================================================
-
-# concept:
-# a database contains tables.
-# a table contains rows and columns.
-
-# example:
-# customers table
-#
-# customer_id | customer_name | city
-# 1           | Sara Ahmed    | New York
-# 2           | John Smith    | Boston
-
-# column:
-# a column is one type of information.
-# example: customer_name
-
-# row:
-# a row is one record.
-# example: one customer
-
-# data type:
-# a data type tells sqlite what kind of data is stored.
-
-# common sqlite data types:
-# integer -> whole number
-# real    -> decimal number
-# text    -> words or dates stored as text
-# null    -> missing value
-
-# primary key:
-# a primary key uniquely identifies each row.
-
-# foreign key:
-# a foreign key is a column in one table that points to a primary key in another table.
-
-# general foreign key formula:
-# foreign key (column_in_this_table)
-# references other_table(column_in_other_table)
-
-# simple foreign key meaning:
-# child_table.foreign_key_column -> parent_table.primary_key_column
-
-# example:
-# orders.customer_id -> customers.customer_id
-
-# this means:
-# every customer_id inside orders must already exist inside customers.
-
-
-# ============================================================
-# 4. table grain
-# ============================================================
-
-# concept:
-# table grain means what one row represents.
-# always know the grain before writing joins.
-
-# in this project:
-# customers   -> one row per customer
-# products    -> one row per product
-# orders      -> one row per order
-# order_items -> one row per product inside an order
-
-# example:
-# one order can contain many products.
-# so one order can have many rows in order_items.
-
-
-# ============================================================
-# 5. delete old tables
-# ============================================================
-
-# concept:
-# this makes the script restart cleanly.
-# child tables must be dropped before parent tables.
-
-# general formula:
+# formula:
 # drop table if exists table_name
 
 # example:
@@ -154,20 +84,53 @@ conn.commit()
 
 
 # ============================================================
-# 6. create table
+# 5. basic database structure
 # ============================================================
 
 # concept:
-# create table makes a new table.
+# a database contains tables.
+# a table contains columns and rows.
 
-# general formula:
+# example:
+# customers table
+#
+# customer_id | customer_name | city
+# 1           | Sara Ahmed    | New York
+# 2           | John Smith    | Boston
+
+# column:
+# one type of information.
+# example: customer_name
+
+# row:
+# one full record.
+# example: one customer
+
+# data type:
+# tells sqlite what kind of data is stored.
+
+# common sqlite types:
+# integer -> whole number
+# real    -> decimal number
+# text    -> words or dates
+# null    -> missing value
+
+
+# ============================================================
+# 6. create first table: customers
+# ============================================================
+
+# concept:
+# create table creates a new table.
+# primary key uniquely identifies each row.
+
+# formula:
 # create table table_name (
 #     column_name data_type constraint,
-#     column_name data_type constraint
+#     column_name data_type
 # )
 
 # example:
-# create a customers table.
 
 cursor.execute("""
 create table customers (
@@ -180,31 +143,14 @@ create table customers (
 
 
 # ============================================================
-# 7. primary key
+# 7. create second table: products
 # ============================================================
 
 # concept:
-# primary key uniquely identifies each row.
-# no two rows should have the same primary key.
+# the products table stores product information.
+# each product has one unique product_id.
 
-# general formula:
-# column_name integer primary key
-
-# example:
-# customer_id integer primary key
-
-# meaning:
-# each customer has a unique customer_id.
-
-
-# ============================================================
-# 8. create products table
-# ============================================================
-
-# concept:
-# products stores product information.
-
-# general formula:
+# formula:
 # create table products (
 #     product_id integer primary key,
 #     product_name text,
@@ -225,28 +171,41 @@ create table products (
 
 
 # ============================================================
-# 9. create orders table with foreign key
+# 8. foreign key concept
 # ============================================================
 
 # concept:
-# orders belong to customers.
-# therefore, orders needs customer_id.
+# a foreign key is a column in one table that points to a row in another table.
+# it creates a relationship between tables.
 
-# parent table:
-# customers
+# formula:
+# foreign key (column_in_this_table)
+# references other_table(column_in_other_table)
 
-# child table:
-# orders
+# important:
+# the column names do not have to be the same.
+# but the values must match.
 
-# general foreign key formula:
-# foreign key (column_in_child_table)
-# references parent_table(primary_key_column)
+# example meaning:
+# orders.customer_id -> customers.customer_id
+
+# this means:
+# every customer_id in orders must already exist in customers.
+
+
+# ============================================================
+# 9. create third table: orders
+# ============================================================
+
+# concept:
+# each order belongs to one customer.
+# so orders has customer_id as a foreign key.
+
+# formula:
+# foreign key (customer_id)
+# references customers(customer_id)
 
 # example:
-# foreign key (customer_id) references customers(customer_id)
-
-# meaning:
-# orders.customer_id must match a real customers.customer_id.
 
 cursor.execute("""
 create table orders (
@@ -260,34 +219,21 @@ create table orders (
 
 
 # ============================================================
-# 10. create order_items table with foreign keys
+# 10. create fourth table: order_items
 # ============================================================
 
 # concept:
-# order_items connects orders and products.
-# each row says:
-# this order included this product with this quantity.
+# one order can contain many products.
+# order_items stores the products inside each order.
 
-# parent table 1:
-# orders
+# each row means:
+# this order contains this product with this quantity.
 
-# parent table 2:
-# products
-
-# child table:
-# order_items
-
-# general formula:
-# foreign key (child_column)
-# references parent_table(parent_column)
-
-# examples:
+# formulas:
 # foreign key (order_id) references orders(order_id)
 # foreign key (product_id) references products(product_id)
 
-# meaning:
-# order_items.order_id must exist in orders.order_id.
-# order_items.product_id must exist in products.product_id.
+# example:
 
 cursor.execute("""
 create table order_items (
@@ -306,14 +252,12 @@ create table order_items (
 # ============================================================
 
 # concept:
-# insert into adds data to a table.
+# insert into adds new data to a table.
+# ? placeholders safely receive python values.
 
-# general formula:
+# formula:
 # insert into table_name (column1, column2)
 # values (?, ?)
-
-# ? is a placeholder.
-# placeholders safely receive python values.
 
 # example:
 
@@ -330,11 +274,8 @@ values (?, ?, ?, ?)
 # concept:
 # executemany inserts many rows at once.
 
-# general formula:
-# cursor.executemany("""
-# insert into table_name (column1, column2)
-# values (?, ?)
-# """, list_of_tuples)
+# formula:
+# cursor.executemany(sql_command, list_of_rows)
 
 # example:
 
@@ -379,8 +320,7 @@ values (?, ?, ?, ?)
 # ============================================================
 
 # concept:
-# each order belongs to one customer.
-# customer_id is the foreign key.
+# orders must use customer_id values that already exist in customers.
 
 orders = [
     (1001, 1, "2024-01-20", "completed"),
@@ -405,11 +345,12 @@ values (?, ?, ?, ?)
 # ============================================================
 
 # concept:
-# each row in order_items is one product inside one order.
+# order_items must use real order_id values and real product_id values.
 
-# example:
+# example row:
 # (1, 1001, 101, 1)
-# means:
+
+# meaning:
 # order_item_id = 1
 # order_id = 1001
 # product_id = 101
@@ -445,9 +386,9 @@ values (?, ?, ?, ?)
 # ============================================================
 
 # concept:
-# commit permanently saves changes.
+# commit saves changes permanently.
 
-# general formula:
+# formula:
 # connection.commit()
 
 # example:
@@ -456,14 +397,14 @@ conn.commit()
 
 
 # ============================================================
-# 17. select all columns
+# 17. select all rows
 # ============================================================
 
 # concept:
-# select reads data from a table.
+# select reads data.
 # * means all columns.
 
-# general formula:
+# formula:
 # select *
 # from table_name
 
@@ -476,7 +417,10 @@ from customers
 
 rows = cursor.fetchall()
 
-show("all customers", rows)
+print("\nall customers")
+
+for row in rows:
+    print(row)
 
 
 # ============================================================
@@ -484,10 +428,10 @@ show("all customers", rows)
 # ============================================================
 
 # concept:
-# usually analysts do not need all columns.
-# select only the columns you need.
+# usually we do not need every column.
+# select only the columns needed.
 
-# general formula:
+# formula:
 # select column1, column2
 # from table_name
 
@@ -500,42 +444,20 @@ from customers
 
 rows = cursor.fetchall()
 
-show("customer names and cities", rows)
+print("\ncustomer names and cities")
+
+for row in rows:
+    print(row)
 
 
 # ============================================================
-# 19. column alias
-# ============================================================
-
-# concept:
-# alias means temporary output name.
-# it does not rename the real database column.
-
-# general formula:
-# select column_name as new_name
-# from table_name
-
-# example:
-
-cursor.execute("""
-select customer_name as name,
-       city as customer_city
-from customers
-""")
-
-rows = cursor.fetchall()
-
-show("column alias example", rows)
-
-
-# ============================================================
-# 20. where
+# 19. where
 # ============================================================
 
 # concept:
 # where filters rows.
 
-# general formula:
+# formula:
 # select columns
 # from table_name
 # where condition
@@ -550,202 +472,25 @@ where city = ?
 
 rows = cursor.fetchall()
 
-show("customers from new york", rows)
+print("\ncustomers from new york")
+
+for row in rows:
+    print(row)
 
 
 # ============================================================
-# 21. comparison operators
-# ============================================================
-
-# concept:
-# comparison operators compare values.
-
-# general formula:
-# where column operator value
-
-# operators:
-# =   equal
-# <>  not equal
-# >   greater than
-# <   less than
-# >=  greater than or equal
-# <=  less than or equal
-
-# example:
-
-cursor.execute("""
-select product_name, unit_price
-from products
-where unit_price > ?
-""", (100,))
-
-rows = cursor.fetchall()
-
-show("products more expensive than 100", rows)
-
-
-# ============================================================
-# 22. and
+# 20. order by
 # ============================================================
 
 # concept:
-# and means both conditions must be true.
-
-# general formula:
-# where condition1
-#   and condition2
-
-# example:
-
-cursor.execute("""
-select product_name, category, unit_price
-from products
-where category = ?
-  and unit_price > ?
-""", ("Electronics", 200))
-
-rows = cursor.fetchall()
-
-show("electronics products over 200", rows)
-
-
-# ============================================================
-# 23. or
-# ============================================================
-
-# concept:
-# or means at least one condition must be true.
-
-# general formula:
-# where condition1
-#    or condition2
-
-# example:
-
-cursor.execute("""
-select customer_name, city
-from customers
-where city = ?
-   or city = ?
-""", ("New York", "Boston"))
-
-rows = cursor.fetchall()
-
-show("customers from new york or boston", rows)
-
-
-# ============================================================
-# 24. in
-# ============================================================
-
-# concept:
-# in checks whether a value is inside a list.
-
-# general formula:
-# where column_name in (value1, value2, value3)
-
-# example:
-
-cursor.execute("""
-select customer_name, city
-from customers
-where city in (?, ?)
-""", ("New York", "Boston"))
-
-rows = cursor.fetchall()
-
-show("customers from selected cities", rows)
-
-
-# ============================================================
-# 25. like
-# ============================================================
-
-# concept:
-# like searches text patterns.
-# % means any characters.
-
-# general formula:
-# where column_name like pattern
-
-# examples:
-# 'Pen%'  -> starts with Pen
-# '%Pen'  -> ends with Pen
-# '%Pen%' -> contains Pen
-
-# working example:
-
-cursor.execute("""
-select product_name
-from products
-where product_name like ?
-""", ("%Pen%",))
-
-rows = cursor.fetchall()
-
-show("products containing pen", rows)
-
-
-# ============================================================
-# 26. date filtering
-# ============================================================
-
-# concept:
-# sqlite can store dates as text in yyyy-mm-dd format.
-# this format sorts correctly.
-
-# general formula:
-# where date_column >= 'yyyy-mm-dd'
-
-# example:
-
-cursor.execute("""
-select order_id, order_date, status
-from orders
-where order_date >= ?
-""", ("2024-03-01",))
-
-rows = cursor.fetchall()
-
-show("orders from march 2024 or later", rows)
-
-
-# ============================================================
-# 27. between
-# ============================================================
-
-# concept:
-# between filters values inside a range.
-
-# general formula:
-# where column_name between low_value and high_value
-
-# example:
-
-cursor.execute("""
-select order_id, order_date
-from orders
-where order_date between ? and ?
-""", ("2024-01-01", "2024-01-31"))
-
-rows = cursor.fetchall()
-
-show("orders in january", rows)
-
-
-# ============================================================
-# 28. order by
-# ============================================================
-
-# concept:
-# order by sorts results.
-
-# general formula:
-# order by column_name asc
-# order by column_name desc
-
+# order by sorts rows.
 # asc means low to high.
 # desc means high to low.
+
+# formula:
+# select columns
+# from table_name
+# order by column_name desc
 
 # example:
 
@@ -757,18 +502,23 @@ order by unit_price desc
 
 rows = cursor.fetchall()
 
-show("products from most expensive to cheapest", rows)
+print("\nproducts from most expensive to cheapest")
+
+for row in rows:
+    print(row)
 
 
 # ============================================================
-# 29. limit
+# 21. limit
 # ============================================================
 
 # concept:
-# limit restricts how many rows come back.
+# limit restricts the number of rows returned.
 
-# general formula:
-# limit number_of_rows
+# formula:
+# select columns
+# from table_name
+# limit number
 
 # example:
 
@@ -781,17 +531,20 @@ limit 3
 
 rows = cursor.fetchall()
 
-show("top 3 most expensive products", rows)
+print("\ntop 3 expensive products")
+
+for row in rows:
+    print(row)
 
 
 # ============================================================
-# 30. count
+# 22. count
 # ============================================================
 
 # concept:
 # count counts rows.
 
-# general formula:
+# formula:
 # select count(*)
 # from table_name
 
@@ -809,41 +562,16 @@ print(total_customers)
 
 
 # ============================================================
-# 31. count with where
+# 23. sum and avg
 # ============================================================
 
 # concept:
-# combine count with where to count only selected rows.
+# sum adds numbers.
+# avg calculates average.
 
-# general formula:
-# select count(*)
-# from table_name
-# where condition
-
-# example:
-
-cursor.execute("""
-select count(*)
-from orders
-where status = ?
-""", ("completed",))
-
-completed_orders = cursor.fetchone()[0]
-
-print("\ncompleted orders")
-print(completed_orders)
-
-
-# ============================================================
-# 32. sum
-# ============================================================
-
-# concept:
-# sum adds numeric values.
-
-# general formula:
-# select sum(column_name)
-# from table_name
+# formulas:
+# select sum(column_name) from table_name
+# select avg(column_name) from table_name
 
 # example:
 
@@ -857,20 +585,6 @@ total_items = cursor.fetchone()[0]
 print("\ntotal items ordered")
 print(total_items)
 
-
-# ============================================================
-# 33. avg
-# ============================================================
-
-# concept:
-# avg calculates the average.
-
-# general formula:
-# select avg(column_name)
-# from table_name
-
-# example:
-
 cursor.execute("""
 select avg(unit_price)
 from products
@@ -883,61 +597,13 @@ print(average_price)
 
 
 # ============================================================
-# 34. min and max
-# ============================================================
-
-# concept:
-# min finds the smallest value.
-# max finds the largest value.
-
-# general formula:
-# select min(column_name), max(column_name)
-# from table_name
-
-# example:
-
-cursor.execute("""
-select min(unit_price), max(unit_price)
-from products
-""")
-
-lowest_price, highest_price = cursor.fetchone()
-
-print("\nlowest and highest product price")
-print(lowest_price, highest_price)
-
-
-# ============================================================
-# 35. distinct
-# ============================================================
-
-# concept:
-# distinct removes duplicates.
-
-# general formula:
-# select distinct column_name
-# from table_name
-
-# example:
-
-cursor.execute("""
-select distinct city
-from customers
-""")
-
-rows = cursor.fetchall()
-
-show("unique customer cities", rows)
-
-
-# ============================================================
-# 36. group by
+# 24. group by
 # ============================================================
 
 # concept:
 # group by summarizes rows with the same value.
 
-# general formula:
+# formula:
 # select group_column, aggregate_function(column)
 # from table_name
 # group by group_column
@@ -945,36 +611,37 @@ show("unique customer cities", rows)
 # example:
 
 cursor.execute("""
-select city,
-       count(*) as customer_count
+select city, count(*) as customer_count
 from customers
 group by city
 """)
 
 rows = cursor.fetchall()
 
-show("number of customers by city", rows)
+print("\ncustomer count by city")
+
+for row in rows:
+    print(row)
 
 
 # ============================================================
-# 37. having
+# 25. having
 # ============================================================
 
 # concept:
 # where filters rows before grouping.
 # having filters groups after grouping.
 
-# general formula:
-# select group_column, aggregate_function(column)
+# formula:
+# select group_column, count(*)
 # from table_name
 # group by group_column
-# having aggregate_condition
+# having count(*) condition
 
 # example:
 
 cursor.execute("""
-select city,
-       count(*) as customer_count
+select city, count(*) as customer_count
 from customers
 group by city
 having count(*) >= 2
@@ -982,21 +649,24 @@ having count(*) >= 2
 
 rows = cursor.fetchall()
 
-show("cities with at least 2 customers", rows)
+print("\ncities with at least 2 customers")
+
+for row in rows:
+    print(row)
 
 
 # ============================================================
-# 38. null
+# 26. null and coalesce
 # ============================================================
 
 # concept:
 # null means missing value.
-# do not use = null.
-# use is null or is not null.
+# use is null, not = null.
+# coalesce replaces null with another value.
 
-# general formula:
+# formulas:
 # where column_name is null
-# where column_name is not null
+# coalesce(column_name, replacement_value)
 
 # example:
 
@@ -1008,20 +678,10 @@ where city is null
 
 rows = cursor.fetchall()
 
-show("customers with missing city", rows)
+print("\ncustomers with missing city")
 
-
-# ============================================================
-# 39. coalesce
-# ============================================================
-
-# concept:
-# coalesce replaces null with another value.
-
-# general formula:
-# coalesce(column_name, replacement_value)
-
-# example:
+for row in rows:
+    print(row)
 
 cursor.execute("""
 select customer_name,
@@ -1031,22 +691,24 @@ from customers
 
 rows = cursor.fetchall()
 
-show("customers with cleaned city", rows)
+print("\ncustomers with cleaned city")
+
+for row in rows:
+    print(row)
 
 
 # ============================================================
-# 40. case when
+# 27. case when
 # ============================================================
 
 # concept:
 # case when creates conditional labels.
 
-# general formula:
+# formula:
 # case
-#     when condition1 then result1
-#     when condition2 then result2
-#     else result3
-# end as new_column_name
+#     when condition then result
+#     else result
+# end as new_column
 
 # example:
 
@@ -1063,25 +725,27 @@ from products
 
 rows = cursor.fetchall()
 
-show("product price levels", rows)
+print("\nproduct price levels")
+
+for row in rows:
+    print(row)
 
 
 # ============================================================
-# 41. inner join
+# 28. inner join
 # ============================================================
 
 # concept:
 # join combines matching rows from two tables.
-# inner join only keeps rows that match in both tables.
 
-# general formula:
+# formula:
 # select columns
 # from table1
 # join table2
-# on table1.common_column = table2.common_column
+# on table1.column = table2.column
 
 # example:
-# orders.customer_id connects to customers.customer_id.
+# orders.customer_id matches customers.customer_id.
 
 cursor.execute("""
 select orders.order_id,
@@ -1095,25 +759,27 @@ on orders.customer_id = customers.customer_id
 
 rows = cursor.fetchall()
 
-show("orders with customer names", rows)
+print("\norders with customer names")
+
+for row in rows:
+    print(row)
 
 
 # ============================================================
-# 42. left join
+# 29. left join
 # ============================================================
 
 # concept:
 # left join keeps all rows from the left table.
-# if no match exists, sqlite returns null for the right table.
+# if there is no match, the right table columns become null.
 
-# general formula:
+# formula:
 # select columns
 # from left_table
 # left join right_table
 # on left_table.column = right_table.column
 
 # example:
-# keep all customers, even customers with no orders.
 
 cursor.execute("""
 select customers.customer_name,
@@ -1125,17 +791,20 @@ on customers.customer_id = orders.customer_id
 
 rows = cursor.fetchall()
 
-show("all customers with possible orders", rows)
+print("\nall customers with possible orders")
+
+for row in rows:
+    print(row)
 
 
 # ============================================================
-# 43. find rows with no match
+# 30. find rows with no match
 # ============================================================
 
 # concept:
 # left join plus is null finds missing matches.
 
-# general formula:
+# formula:
 # select columns
 # from left_table
 # left join right_table
@@ -1143,7 +812,7 @@ show("all customers with possible orders", rows)
 # where right_table.id is null
 
 # example:
-# find customers who never placed any order.
+# find customers with no orders.
 
 cursor.execute("""
 select customers.customer_id,
@@ -1156,24 +825,25 @@ where orders.order_id is null
 
 rows = cursor.fetchall()
 
-show("customers with no orders", rows)
+print("\ncustomers with no orders")
+
+for row in rows:
+    print(row)
 
 
 # ============================================================
-# 44. calculated fields
+# 31. calculated field
 # ============================================================
 
 # concept:
-# sql can calculate new columns.
+# sql can create calculated columns.
+# revenue = quantity * unit_price.
 
-# general formula:
-# select column1,
-#        column2,
-#        column1 * column2 as new_column
+# formula:
+# select column1 * column2 as new_column
 # from table_name
 
 # example:
-# revenue = quantity * unit_price.
 
 cursor.execute("""
 select order_items.order_id,
@@ -1188,18 +858,20 @@ on order_items.product_id = products.product_id
 
 rows = cursor.fetchall()
 
-show("line item revenue", rows)
+print("\nline item revenue")
+
+for row in rows:
+    print(row)
 
 
 # ============================================================
-# 45. total revenue from completed orders
+# 32. total revenue from completed orders
 # ============================================================
 
 # concept:
-# real sales analysis should ignore cancelled orders.
-# revenue comes from completed orders only.
+# cancelled orders should not count as real revenue.
 
-# general formula:
+# formula:
 # select sum(quantity * price)
 # from joined_tables
 # where status = 'completed'
@@ -1207,7 +879,7 @@ show("line item revenue", rows)
 # example:
 
 cursor.execute("""
-select sum(order_items.quantity * products.unit_price) as total_revenue
+select sum(order_items.quantity * products.unit_price)
 from orders
 join order_items
 on orders.order_id = order_items.order_id
@@ -1223,15 +895,14 @@ print(total_revenue)
 
 
 # ============================================================
-# 46. revenue by category
+# 33. revenue by category
 # ============================================================
 
 # concept:
-# combine join, sum, group by, and order by.
+# this combines join, sum, group by, and order by.
 
-# general formula:
-# select category,
-#        sum(quantity * price) as revenue
+# formula:
+# select category, sum(quantity * price)
 # from joined_tables
 # where condition
 # group by category
@@ -1241,7 +912,7 @@ print(total_revenue)
 
 cursor.execute("""
 select products.category,
-       sum(order_items.quantity * products.unit_price) as category_revenue
+       sum(order_items.quantity * products.unit_price) as revenue
 from orders
 join order_items
 on orders.order_id = order_items.order_id
@@ -1249,59 +920,27 @@ join products
 on order_items.product_id = products.product_id
 where orders.status = 'completed'
 group by products.category
-order by category_revenue desc
+order by revenue desc
 """)
 
 rows = cursor.fetchall()
 
-show("revenue by category", rows)
+print("\nrevenue by category")
+
+for row in rows:
+    print(row)
 
 
 # ============================================================
-# 47. revenue by product
-# ============================================================
-
-# concept:
-# this shows which products generated the most money.
-
-# general formula:
-# select product_name,
-#        sum(quantity * price) as revenue
-# from joined_tables
-# group by product_name
-# order by revenue desc
-
-# example:
-
-cursor.execute("""
-select products.product_name,
-       sum(order_items.quantity * products.unit_price) as product_revenue
-from orders
-join order_items
-on orders.order_id = order_items.order_id
-join products
-on order_items.product_id = products.product_id
-where orders.status = 'completed'
-group by products.product_name
-order by product_revenue desc
-""")
-
-rows = cursor.fetchall()
-
-show("revenue by product", rows)
-
-
-# ============================================================
-# 48. total spending by customer
+# 34. revenue by customer
 # ============================================================
 
 # concept:
-# customer spending needs four tables:
+# to find customer spending, connect:
 # customers -> orders -> order_items -> products
 
-# general formula:
-# select customer,
-#        sum(quantity * price) as total_spent
+# formula:
+# select customer, sum(quantity * price)
 # from customers
 # join orders
 # join order_items
@@ -1329,51 +968,21 @@ order by total_spent desc
 
 rows = cursor.fetchall()
 
-show("total spending by customer", rows)
+print("\nrevenue by customer")
+
+for row in rows:
+    print(row)
 
 
 # ============================================================
-# 49. subquery
-# ============================================================
-
-# concept:
-# a subquery is a query inside another query.
-
-# general formula:
-# select columns
-# from table_name
-# where column > (
-#     select aggregate_function(column)
-#     from table_name
-# )
-
-# example:
-# find products more expensive than the average product price.
-
-cursor.execute("""
-select product_name, unit_price
-from products
-where unit_price > (
-    select avg(unit_price)
-    from products
-)
-order by unit_price desc
-""")
-
-rows = cursor.fetchall()
-
-show("products above average price", rows)
-
-
-# ============================================================
-# 50. common table expression
+# 35. common table expression
 # ============================================================
 
 # concept:
-# a cte is a temporary named result.
-# it makes complex queries easier to read.
+# a cte is a temporary named query.
+# it makes a complex query easier to read.
 
-# general formula:
+# formula:
 # with cte_name as (
 #     select ...
 # )
@@ -1381,8 +990,6 @@ show("products above average price", rows)
 # from cte_name
 
 # example:
-# first calculate customer revenue.
-# then filter customers who spent more than 500.
 
 cursor.execute("""
 with customer_revenue as (
@@ -1403,69 +1010,26 @@ with customer_revenue as (
 select *
 from customer_revenue
 where total_spent > 500
-order by total_spent desc
 """)
 
 rows = cursor.fetchall()
 
-show("customers who spent more than 500", rows)
+print("\ncustomers who spent more than 500")
+
+for row in rows:
+    print(row)
 
 
 # ============================================================
-# 51. average order value
-# ============================================================
-
-# concept:
-# average order value means average revenue per order.
-# first calculate revenue per order.
-# then average those order totals.
-
-# general formula:
-# with order_totals as (
-#     select order_id,
-#            sum(quantity * price) as order_total
-#     from joined_tables
-#     group by order_id
-# )
-# select avg(order_total)
-# from order_totals
-
-# example:
-
-cursor.execute("""
-with order_totals as (
-    select orders.order_id,
-           sum(order_items.quantity * products.unit_price) as order_total
-    from orders
-    join order_items
-    on orders.order_id = order_items.order_id
-    join products
-    on order_items.product_id = products.product_id
-    where orders.status = 'completed'
-    group by orders.order_id
-)
-select avg(order_total)
-from order_totals
-""")
-
-average_order_value = cursor.fetchone()[0]
-
-print("\naverage order value")
-print(average_order_value)
-
-
-# ============================================================
-# 52. window function: rank
+# 36. window function
 # ============================================================
 
 # concept:
-# window functions calculate across rows without collapsing rows.
-# rank gives a ranking based on a value.
+# a window function calculates across rows without removing rows.
+# rank gives a ranking.
 
-# general formula:
-# rank() over (
-#     order by column_name desc
-# ) as rank_column
+# formula:
+# rank() over (order by column_name desc)
 
 # example:
 # rank customers by total spending.
@@ -1495,56 +1059,25 @@ from customer_revenue
 
 rows = cursor.fetchall()
 
-show("customer spending rank", rows)
+print("\ncustomer spending rank")
+
+for row in rows:
+    print(row)
 
 
 # ============================================================
-# 53. window function: row_number
-# ============================================================
-
-# concept:
-# row_number gives each row a number.
-# partition by restarts numbering for each group.
-
-# general formula:
-# row_number() over (
-#     partition by group_column
-#     order by sort_column
-# ) as row_number_column
-
-# example:
-# number each customer's completed orders.
-
-cursor.execute("""
-select order_id,
-       customer_id,
-       order_date,
-       row_number() over (
-           partition by customer_id
-           order by order_date
-       ) as order_number_for_customer
-from orders
-where status = 'completed'
-""")
-
-rows = cursor.fetchall()
-
-show("order number per customer", rows)
-
-
-# ============================================================
-# 54. date analysis with strftime
+# 37. date analysis
 # ============================================================
 
 # concept:
 # sqlite uses strftime to extract parts of a date.
-# '%Y-%m' extracts year and month.
+# '%Y-%m' means year and month.
 
-# general formula:
+# formula:
 # strftime('%Y-%m', date_column)
 
 # example:
-# calculate monthly revenue.
+# monthly revenue.
 
 cursor.execute("""
 select strftime('%Y-%m', orders.order_date) as order_month,
@@ -1561,213 +1094,33 @@ order by order_month
 
 rows = cursor.fetchall()
 
-show("monthly revenue", rows)
+print("\nmonthly revenue")
+
+for row in rows:
+    print(row)
 
 
 # ============================================================
-# 55. monthly completed orders
-# ============================================================
-
-# concept:
-# count completed orders by month.
-
-# general formula:
-# select month,
-#        count(*) as order_count
-# from orders
-# where status = 'completed'
-# group by month
-
-# example:
-
-cursor.execute("""
-select strftime('%Y-%m', order_date) as order_month,
-       count(*) as completed_orders
-from orders
-where status = 'completed'
-group by strftime('%Y-%m', order_date)
-order by order_month
-""")
-
-rows = cursor.fetchall()
-
-show("monthly completed orders", rows)
-
-
-# ============================================================
-# 56. first and latest order date
+# 38. final customer summary query
 # ============================================================
 
 # concept:
-# min(date) gives the first date.
-# max(date) gives the latest date.
+# this is the main project query.
+# it creates one summary row per customer.
 
-# general formula:
-# select group_column,
-#        min(date_column),
-#        max(date_column)
-# from table_name
-# group by group_column
-
-# example:
-
-cursor.execute("""
-select customers.customer_name,
-       min(orders.order_date) as first_order_date,
-       max(orders.order_date) as latest_order_date
-from customers
-join orders
-on customers.customer_id = orders.customer_id
-where orders.status = 'completed'
-group by customers.customer_name
-""")
-
-rows = cursor.fetchall()
-
-show("first and latest completed order per customer", rows)
-
-
-# ============================================================
-# 57. customers with more than one completed order
-# ============================================================
-
-# concept:
-# use group by plus having to filter customers after counting.
-
-# general formula:
-# select customer,
-#        count(order_id)
-# from orders
-# group by customer
-# having count(order_id) > 1
-
-# example:
-
-cursor.execute("""
-select customers.customer_id,
-       customers.customer_name,
-       count(orders.order_id) as completed_order_count
-from customers
-join orders
-on customers.customer_id = orders.customer_id
-where orders.status = 'completed'
-group by customers.customer_id,
-         customers.customer_name
-having count(orders.order_id) > 1
-""")
-
-rows = cursor.fetchall()
-
-show("customers with more than one completed order", rows)
-
-
-# ============================================================
-# 58. rank products inside each category
-# ============================================================
-
-# concept:
-# partition by ranks separately inside each group.
-# here, each category gets its own ranking.
-
-# general formula:
-# rank() over (
-#     partition by group_column
-#     order by value_column desc
-# )
-
-# example:
-
-cursor.execute("""
-with product_revenue as (
-    select products.category,
-           products.product_name,
-           sum(order_items.quantity * products.unit_price) as revenue
-    from orders
-    join order_items
-    on orders.order_id = order_items.order_id
-    join products
-    on order_items.product_id = products.product_id
-    where orders.status = 'completed'
-    group by products.category,
-             products.product_name
-)
-select category,
-       product_name,
-       revenue,
-       rank() over (
-           partition by category
-           order by revenue desc
-       ) as rank_inside_category
-from product_revenue
-order by category, rank_inside_category
-""")
-
-rows = cursor.fetchall()
-
-show("products ranked by revenue inside each category", rows)
-
-
-# ============================================================
-# 59. revenue by price level
-# ============================================================
-
-# concept:
-# combine case when with revenue analysis.
-
-# general formula:
-# select case when ... end as group_name,
-#        sum(metric) as total_metric
-# from tables
-# group by group_name
-
-# example:
-
-cursor.execute("""
-select case
-           when products.unit_price >= 500 then 'High'
-           when products.unit_price >= 100 then 'Medium'
-           else 'Low'
-       end as price_level,
-       sum(order_items.quantity * products.unit_price) as revenue
-from orders
-join order_items
-on orders.order_id = order_items.order_id
-join products
-on order_items.product_id = products.product_id
-where orders.status = 'completed'
-group by price_level
-order by revenue desc
-""")
-
-rows = cursor.fetchall()
-
-show("revenue by price level", rows)
-
-
-# ============================================================
-# 60. final customer summary query
-# ============================================================
-
-# concept:
-# this is the main project-style query.
-# it combines:
+# it uses:
 # left join
-# aggregation
 # count distinct
 # sum
 # min
 # max
 # coalesce
 # cte
-# rank window function
+# rank
 
-# goal:
-# create one summary row per customer.
-
-# general formula:
+# formula:
 # with summary as (
-#     select customer fields,
-#            aggregate metrics
+#     select customer fields and metrics
 #     from customers
 #     left join other tables
 #     group by customer fields
@@ -1783,7 +1136,7 @@ with customer_summary as (
     select customers.customer_id,
            customers.customer_name,
            coalesce(customers.city, 'Unknown') as city,
-           count(distinct orders.order_id) as number_of_completed_orders,
+           count(distinct orders.order_id) as completed_orders,
            coalesce(sum(order_items.quantity * products.unit_price), 0) as total_spent,
            min(orders.order_date) as first_order_date,
            max(orders.order_date) as latest_order_date
@@ -1802,34 +1155,34 @@ with customer_summary as (
 select customer_id,
        customer_name,
        city,
-       number_of_completed_orders,
+       completed_orders,
        total_spent,
        first_order_date,
        latest_order_date,
-       rank() over (order by total_spent desc) as customer_rank_by_spending
+       rank() over (order by total_spent desc) as customer_rank
 from customer_summary
-order by customer_rank_by_spending
+order by customer_rank
 """)
 
 rows = cursor.fetchall()
 
-show("final customer summary", rows)
+print("\nfinal customer summary")
+
+for row in rows:
+    print(row)
 
 
 # ============================================================
-# 61. update
+# 39. update
 # ============================================================
 
 # concept:
 # update changes existing rows.
 
-# general formula:
+# formula:
 # update table_name
 # set column_name = new_value
 # where condition
-
-# warning:
-# always use where unless you want to update every row.
 
 # example:
 
@@ -1841,34 +1194,21 @@ where product_name = ?
 
 conn.commit()
 
-cursor.execute("""
-select product_name, unit_price
-from products
-where product_name = ?
-""", ("Headphones",))
-
-rows = cursor.fetchall()
-
-show("updated headphones price", rows)
-
 
 # ============================================================
-# 62. delete
+# 40. delete
 # ============================================================
 
 # concept:
 # delete removes rows.
+# always use where unless you want to delete everything.
 
-# general formula:
+# formula:
 # delete from table_name
 # where condition
 
-# warning:
-# without where, delete removes all rows from the table.
-
 # example:
-# this example deletes nothing because Temporary Product does not exist.
-# it is safe.
+# this deletes nothing because the product does not exist.
 
 cursor.execute("""
 delete from products
@@ -1879,47 +1219,16 @@ conn.commit()
 
 
 # ============================================================
-# 63. sql execution order
+# 41. project tasks
 # ============================================================
 
-# concept:
-# sql is written in one order but logically runs in another order.
-
-# written order:
-# select
-# from
-# join
-# where
-# group by
-# having
-# order by
-# limit
-
-# logical execution order:
-# from and join
-# where
-# group by
-# having
-# select
-# order by
-# limit
-
-# why this matters:
-# where filters raw rows.
-# having filters grouped results.
-
-
-# ============================================================
-# 64. project tasks
-# ============================================================
-
-# solve these without looking at the examples above.
+# solve these yourself.
 
 # task 1:
 # show all customers.
 
 # task 2:
-# show products from most expensive to cheapest.
+# show all products ordered by price from highest to lowest.
 
 # task 3:
 # count customers by city.
@@ -1937,78 +1246,66 @@ conn.commit()
 # calculate revenue by product.
 
 # task 8:
-# find the top 3 products by revenue.
+# find top 3 customers by total spending.
 
 # task 9:
-# calculate total spending by each customer.
-
-# task 10:
 # find customers with no completed orders.
 
-# task 11:
-# find each customer's first completed order date.
-
-# task 12:
+# task 10:
 # calculate monthly revenue.
 
-# task 13:
-# calculate average order value.
+# task 11:
+# rank customers by spending.
 
-# task 14:
-# rank customers by total spending.
-
-# task 15:
-# create the final customer summary query.
+# task 12:
+# write the final customer summary query.
 
 
 # ============================================================
-# 65. final summary
+# 42. summary
 # ============================================================
 
-# create table       -> create a table
-# primary key        -> unique id for each row
-# foreign key        -> column pointing to another table's primary key
-# insert into        -> add rows
-# executemany        -> add many rows
-# commit             -> save changes
-# select             -> read data
-# where              -> filter rows
-# and / or           -> combine conditions
-# in                 -> match multiple values
-# like               -> search text
-# between            -> filter ranges
-# order by           -> sort rows
-# limit              -> restrict rows
-# count              -> count rows
-# sum                -> add values
-# avg                -> compute average
-# min / max          -> find smallest / largest values
-# distinct           -> remove duplicates
-# group by           -> summarize rows
-# having             -> filter grouped results
-# is null            -> find missing values
-# coalesce           -> replace missing values
-# case when          -> create conditional labels
-# join               -> combine matching rows
-# left join          -> keep unmatched left-table rows
-# calculated field   -> create new value from existing columns
-# subquery           -> query inside another query
-# cte                -> temporary named query
-# window function    -> rank or number rows without collapsing them
-# strftime           -> analyze dates in sqlite
-# update             -> modify rows
-# delete             -> remove rows
-# close              -> close database connection
+# connect          -> connect python to database
+# cursor           -> send sql commands to database
+# execute          -> run one sql command
+# executemany      -> run one insert command many times
+# commit           -> save changes
+# table            -> stores rows and columns
+# column           -> one type of information
+# row              -> one record
+# primary key      -> unique id for each row
+# foreign key      -> column pointing to another table
+# insert into      -> add data
+# select           -> read data
+# where            -> filter rows
+# order by         -> sort rows
+# limit            -> restrict rows
+# count            -> count rows
+# sum              -> add numbers
+# avg              -> average
+# group by         -> summarize by group
+# having           -> filter grouped results
+# null             -> missing value
+# coalesce         -> replace missing value
+# case when        -> create labels
+# join             -> combine matching rows
+# left join        -> keep all rows from left table
+# cte              -> temporary named query
+# window function  -> rank or number rows
+# strftime         -> date analysis
+# update           -> modify rows
+# delete           -> remove rows
+# close            -> close database
 
 
 # ============================================================
-# 66. close database
+# 43. close database
 # ============================================================
 
 # concept:
-# close the connection when finished.
+# close the database connection when finished.
 
-# general formula:
+# formula:
 # connection.close()
 
 # example:
