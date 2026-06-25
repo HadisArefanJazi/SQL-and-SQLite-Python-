@@ -2,11 +2,6 @@
 # sql and sqlite data analysis tutorial
 # ============================================================
 
-# this file teaches sql for data analysis using python and sqlite.
-# every topic follows this structure:
-# 1. concept explanation
-# 2. general formula
-# 3. working example
 
 # sql means structured query language.
 # sql is used to create, read, update, delete, clean, join, and analyze data.
