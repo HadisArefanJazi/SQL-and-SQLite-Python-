@@ -653,7 +653,22 @@ for row in rows:
 # where column_name is null
 # coalesce(column_name, replacement_value)
 
+# cursor.execute("""
+# select column_1,
+#       coalesce(column_2, replacement_value) as new_column_name
+# from table_name
+# """)
+
+
 # example:
+# select column_1
+# show it normally
+# coalesce(column_2, replacement_value)
+# if column_2 is null, replace it with replacement_value
+# as new_column_name
+# give the result column a temporary name
+# from table_name
+# choose the table
 
 cursor.execute("""
 select customer_name, city
