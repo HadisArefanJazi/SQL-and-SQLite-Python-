@@ -326,6 +326,14 @@ for row in cursor.fetchall():
     print(row)
 
 
+# JOIN / INNER JOIN = only matching rows
+# LEFT JOIN         = all left table rows; right side may be NULL
+# RIGHT JOIN        = all right table rows; left side may be NULL
+# FULL OUTER JOIN   = all rows from both tables; either side may be NULL
+# SELF JOIN         = table joined to itself
+
+
+
 # ============================================================
 # 16. COALESCE
 # ============================================================
